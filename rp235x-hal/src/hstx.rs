@@ -2,6 +2,42 @@
 //!
 //! See [Section 12.3](https://rptl.io/rp2350-datasheet#section_hstx) for more details.
 //!
+//! ## Usage
+//!
+//! ```no_run
+//! use rp235x_hal::{
+//!     self as hal,
+//!     hstx::{Hstx, HstxPins, HstxBitConfig},
+//!     Sio,
+//! };
+//!
+//! let mut peripherals = hal::pac::Peripherals::take().unwrap();
+//! let sio = Sio::new(peripherals.SIO);
+//! let pins = Pins::new(
+//!     peripherals.IO_BANK0,
+//!     peripherals.PADS_BANK0,
+//!     sio.gpio_bank0,
+//!     &mut peripherals.RESETS,
+//! );
+//!
+//! let bit0p = pins.gpio12.into_function();
+//! let bit3p = pins.gpio15.into_function();
+//!
+//! let hstx_pins = HstxPins.add_bit0_pin(bit0p).add_bit3_pin(bit3p);
+//!
+//! let mut hstx = Hstx::new(peripherals.HSTX_CTRL, peripherals.HSTX_FIFO, hstx_pins,
+//!                          &mut peripherals.RESET);
+//! hstx.configure_clk(5, 0);
+//! hstx.configure_shifter(2, 5);
+//! hstx.configure_bit0(HstxBitConfig::Clk(inv: false));
+//! hstx.configure_bit3(HstxBitConfig::Shift{sel_p:0, sel_n: 1, inv: false});
+//!
+//! let hstx = hstx.enable();
+//!
+//! loop {
+//!     hstx.fifo_write(...);
+//! }
+//! ```
 
 use crate::{
     dma::{EndlessWriteTarget, WriteTarget},
